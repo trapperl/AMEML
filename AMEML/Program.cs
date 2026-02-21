@@ -50,11 +50,12 @@ internal class Program
 
     static async Task OnBeforeResponse(object sender, SessionEventArgs e)
     {
-        var proc = Process.GetProcessById(e.HttpClient.ProcessId.Value);
+        Process? proc = null;
+        try { proc = Process.GetProcessById(e.HttpClient.ProcessId.Value); } catch { }
         if (proc == null || proc.ProcessName.ToLower() != "amazon music") return;
 
-        var url = e.HttpClient.Request.RequestUri.ToString();
-        if (url.Trim() != "https://www.amazon.de/cirrus/v3/sync") return;
+        var uri = e.HttpClient.Request.RequestUri;
+        if (uri.AbsolutePath.Trim('/') != "cirrus/v3/sync") return;
 
         byte[] bodyBytes = await e.GetResponseBody();
         string bodyString = Encoding.UTF8.GetString(bodyBytes);
